@@ -1,48 +1,77 @@
-const express = require('express')
-const router = express.Router()
-const TemplateController = require('../Controllers')
+import express from 'express';
+import { check } from 'express-validator';
+import { 
+  getAllData, 
+  getSingleData, 
+  createData, 
+  updateData, 
+  deleteData 
+} from '../Controllers/index.js';
+import auth from '../middleware/auth.js'; // Authentication middleware
+
+const router = express.Router();
+
+// Define validation arrays
+const createValidations = [
+  check('logType', 'Log type is required')
+    .isIn(['water', 'plastic']),
+  check('data.amount', 'Amount must be a positive number')
+    .isFloat({ min: 0 }),
+  check('data.unit', 'Invalid unit')
+    .optional()
+    .isIn(['ml', 'oz', 'L', 'gal'])
+];
+
+// Update validation arrays
+const updateValidations = [
+  check('data.amount', 'Amount must be a positive number')
+    .optional()
+    .isFloat({ min: 0 })
+];
 
 /**
- *  @summary GET ALL DATAS 
- *  @route   GET /api/get-all-datas
- *  @access  Public
- *  @header  { Content-Type: application/json }
+ * @desc    Get all water/plastic tracking entries
+ * @route   GET /api/data
+ * @access  Private (Authenticated users only)
+ * @query   type?=water|plastic (Filter by log type)
  */
-router.get('/get-all-datas', TemplateController.get_all_datas)
+router.get('/data', auth, getAllData);
 
 /**
- *  @summary GET A SINGLE DATA BASED ON ID
- *  @route   GET /api/get_single_data/:dataId
- *  @access  Public
- *  @header  { Content-Type: application/json }
+ * @desc    Get single tracking entry
+ * @route   GET /api/data/:id
+ * @access  Private (Owner/Admin only)
  */
-router.get('/get_single_data/:dataId', TemplateController.get_single_data)
+router.get('/data/:id', auth, getSingleData);
 
 /**
- *  @summary CREATE A SINGLE DATA
- *  @route   POST /api/create_a_data
- *  @access  Public
- *  @header  { Content-Type: application/json }
- *  @body    { "data": String }
+ * @desc    Create new tracking entry
+ * @route   POST /api/data
+ * @access  Private (Authenticated users)
+ * @body    { 
+ *            logType: "water"|"plastic",
+ *            data: {
+ *              amount: Number,
+ *              unit?: "ml"|"oz",
+ *              notes?: String 
+ *            }
+ *          }
  */
-router.post('/create_a_data', TemplateController.create_a_data)
+router.post('/data', auth, createData);
 
 /**
- *  @summary DELETE A SINGLE DATA
- *  @route   DELETE /api/create_a_data
- *  @access  Public
- *  @header  { Content-Type: application/json }
+ * @desc    Update tracking entry
+ * @route   PUT /api/data/:id
+ * @access  Private (Owner/Admin only)
+ * @body    { data: Object }
  */
-router.delete('/delete_a_data/:dataId', TemplateController.delete_a_data)
+router.put('/data/:id', updateData);
 
 /**
- *  @summary UPDATE A SINGLE DATA
- *  @route   PATCH /api/update_a_data/:dataId
- *  @access  Public
- *  @header  { Content-Type: application/json }
- *  @body    { "data": String }
+ * @desc    Delete tracking entry
+ * @route   DELETE /api/data/:id
+ * @access  Private (Owner/Admin only)
  */
-router.patch('/update_a_data/:dataId', TemplateController.update_a_data)
+router.delete('/data/:id', auth, deleteData);
 
-module.exports = router
-
+export default router;

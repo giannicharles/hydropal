@@ -1,103 +1,176 @@
-const Data = require('../Models/Data')
+import Data from '../Models/Data.js';
+import { validationResult } from 'express-validator'; // For request validation
 
-exports.get_all_datas = (req, res) => {
-  Data.find((err, docs) => {
-    if (err) {
-      res.status(500).json({
-        message: { msgBody: 'An error has occurred whilst getting the Datas.', msgError: true, err },
-      })
-      return
-    }
-    res.status(200).json({ data: docs })
-  }).catch(err => {
+/**
+ * @desc    Get all water/plastic tracking entries
+ * @route   GET /api/data
+ * @access  Authenticated users
+ */
+export const getAllData = async (req, res) => {
+  try {
+    // Add filtering for water/plastic logs
+    const filter = {};
+    if (req.query.type) filter.logType = req.query.type; // ?type=water
+    if (req.user) filter.userId = req.user.id; // Only show current user's data
+
+    const data = await Data.find(filter)
+      .sort({ createdAt: -1 }) // Newest first
+      .lean(); // Faster processing
+
+    res.status(200).json({
+      success: true,
+      count: data.length,
+      data
+    });
+  } catch (err) {
+    console.error('Error fetching tracking data:', err);
     res.status(500).json({
-      message: { msgBody: 'An error has occurred whilst getting the Datas.', msgError: true, err },
-    })
-  })
-}
+      success: false,
+      message: 'Failed to fetch tracking data',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+};
 
-exports.get_single_data = (req, res) => {
-  Data.findById(req.params.dataId)
-    .then((data, err) => {
-      if (!data) {
-        res
-          .status(404)
-          .json({ message: 'No data found for provided Data id' })
-        return
+/**
+ * @desc    Get single tracking entry
+ * @route   GET /api/data/:id
+ * @access  Owner/Admin
+ */
+export const getSingleData = async (req, res) => {
+  try {
+    const entry = await Data.findOne({
+      _id: req.params.id,
+      ...(req.user.role !== 'admin' && { userId: req.user.id }) // Restrict to owner unless admin
+    });
+
+    if (!entry) {
+      return res.status(404).json({
+        success: false,
+        message: 'No tracking entry found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: entry
+    });
+  } catch (err) {
+    console.error('Error fetching entry:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch tracking entry'
+    });
+  }
+};
+
+/**
+ * @desc    Create new water/plastic tracking entry
+ * @route   POST /api/data
+ * @access  Authenticated users
+ */
+export const createData = async (req, res) => {
+  
+  // Validate request
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ 
+      success: false,
+      errors: errors.array() 
+    });
+  }
+
+  try {
+    const newEntry = await Data.create({
+      ...req.body,
+      userId: req.user.id // Automatically assign to current user
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Tracking entry created',
+      data: {
+        id: newEntry._id,
+        type: newEntry.logType,
+        amount: newEntry.data.amount,
+        date: newEntry.createdAt
       }
-      if (err) {
-        res.status(500).json({
-          message: { msgBody: 'An error has occurred whilst getting a single Data.', msgError: true, err },
-        })
-        return
-      }
-      res.status(200).json({ data })
-    }).catch(err => {
-      res.status(500).json({
-        message: { msgBody: 'An error has occurred whilst creating a new Data.', msgError: true, err },
-      })
-    })
-}
+    });
+  } catch (err) {
+    console.error('Error creating entry:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create tracking entry'
+    });
+  }
+};
 
-exports.create_a_data = (req, res) => {
-  const newData = new Data({
-    data: req.body
-  })
-  newData.save()
-    .then(data => {
-      res.status(200).json({
-        message: 'A Data was successfully created',
-        'created_data': { _id: data._id, data: data.data },
-        request: {
-          type: 'GET',
-          url: 'localhost:5000/api/create_a_data/' + data._id
-        }
-      })
-    }).catch(err => {
-      res.status(500).json({
-        message: { msgBody: 'An error has occurred whilst creating a new Data.', msgError: true, err },
-      })
-    })
-}
+/**
+ * @desc    Update tracking entry
+ * @route   PUT /api/data/:id
+ * @access  Owner/Admin
+ */
+export const updateData = async (req, res) => {
+  try {
+    const updatedEntry = await Data.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        userId: req.user.id // Only owner can update
+      },
+      { data: req.body.data },
+      { new: true, runValidators: true }
+    );
 
-exports.delete_a_data = (req, res) => {
-  Data.deleteOne({ _id: req.params.dataId })
-    .then(data => {
-      if (!data) {
-        res
-          .status(404)
-          .json({ message: 'No data found for provided Data ID' })
-        return
-      }
-      res.status(200).json({
-        message: 'Data successfully deleted',
-        deletedCount: data.deletedCount,
-        request: {
-          type: 'POST',
-          url: 'localhost:5000/api/delete_a_data',
-          body: { data: 'String' }
-        }
-      })
-    }).catch(err => {
-      res.status(500).json({
-        message: { msgBody: 'An error has occurred whilst deleting a Data.', msgError: true, err },
-      })
-    })
-}
+    if (!updatedEntry) {
+      return res.status(404).json({
+        success: false,
+        message: 'No tracking entry found or not authorized'
+      });
+    }
 
-exports.update_a_data = (req, res) => {
-  Data.updateOne(req.params.productId, { $set: { data: req.body.data } })
-    .then(data => {
-      res.status(200).json({
-        message: 'Data updated',
-        request: {
-          type: 'GET',
-          url: 'http:localhost:5000/api/update_a_data/'
-        }
-      })
-    }).catch(err => {
-      res.status(500).json({
-        message: { msgBody: 'An error has occurred whilst updating a Data.', msgError: true, err },
-      })
-    })
-}
+    res.status(200).json({
+      success: true,
+      message: 'Tracking entry updated',
+      data: updatedEntry
+    });
+  } catch (err) {
+    console.error('Error updating entry:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update tracking entry'
+    });
+  }
+};
+
+/**
+ * @desc    Delete tracking entry
+ * @route   DELETE /api/data/:id
+ * @access  Owner/Admin
+ */
+export const deleteData = async (req, res) => {
+  try {
+    const deletedEntry = await Data.findOneAndDelete({
+      _id: req.params.id,
+      ...(req.user.role !== 'admin' && { userId: req.user.id }) // Restrict to owner unless admin
+    });
+
+    if (!deletedEntry) {
+      return res.status(404).json({
+        success: false,
+        message: 'No tracking entry found or not authorized'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Tracking entry deleted',
+      data: { id: req.params.id }
+    });
+  } catch (err) {
+    console.error('Error deleting entry:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete tracking entry'
+    });
+  }
+};

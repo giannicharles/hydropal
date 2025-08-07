@@ -1,28 +1,112 @@
-require('dotenv').config()
-const express = require('express')
-const mongoose = require('mongoose')
-const router = require('./Routes')
+// Load environment variables from .env file (for sensitive configuration)
+import 'dotenv/config';
 
-const app = express()
-const port = 5000
+// Import core dependencies
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
 
-// If using a cloud based solution replace 'mongodb://localhost:27017/express-mongoose-template'
-// with the connection string supplied by your cloud supplier.
+// Import route files
+import router from './Routes/index.js'; // Core routes from template
+// import waterRoutes from "./routes/waterRoutes.js"; // Uncomment when ready
+// import plasticRoutes from "./routes/plasticRoutes.js"; // Uncomment when ready
+
+// Initialize Express application
+const app = express();
+const port = process.env.PORT || 5000; // Use environment variable with fallback
+
+/**
+ * Database Connection Setup
+ * Enhanced with modern options and error handling
+ */
 mongoose.connect(
-  'mongodb://localhost:27017/express-mongoose-template',
-  { useNewUrlParser: true, useUnifiedTopology: true },
-  () => {
-    console.log('Successfully connected to database.')
+  process.env.MONGODB_URI || 'mongodb://localhost:27017/hydropal', // Updated DB name
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of 30s
   }
-).catch(err => console.error(err))
-
-app.use(express.urlencoded({ extended: false }))
-app.use(express.json())
-
-app.get('/', (req, res) => {
-  res.status(200).json({ title: 'Express & Mongoose Template' })
+)
+.then(() => {
+  console.log('🚀 Successfully connected to MongoDB');
+  console.log(`   Database: ${mongoose.connection.name}`);
+  console.log(`   Host: ${mongoose.connection.host}`);
 })
+.catch(err => {
+  console.error('❌ Database connection error:', err.message);
+  process.exit(1); // Exit process on connection failure
+});
 
-app.use('/api', router)
+// Middleware Stack
+app.use(helmet()); // Security headers
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // CoreUI frontend
+  optionsSuccessStatus: 200 // For legacy browser support
+}));
+app.use(morgan('dev')); // HTTP request logging
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use(express.json()); // Parse JSON bodies
 
-app.listen(port, () => console.log(`Express dev server started on port ${port}`))
+// Mock authentication middleware (MOVE THIS BEFORE ROUTES)
+app.use((req, res, next) => {
+  // Replace with real auth middleware when ready
+  req.user = { 
+    id: 'USER_ID_FROM_JWT', 
+    role: 'user' // or 'admin'
+  };
+  next();
+});
+
+// Health Check Endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    title: 'HydroPal API',
+    status: 'operational',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// API Routes
+app.use('/api', router); // Core routes from template
+// app.use('/api/water', waterRoutes); // Uncomment when ready
+// app.use('/api/plastic', plasticRoutes); // Uncomment when ready
+
+// 404 Handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint not found' });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('⚠️ Error:', err.stack);
+  res.status(500).json({ 
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error' 
+  });
+});
+
+// Start Server with enhanced error handling
+const server = app.listen(port, () => {
+  console.log(`\n🌍 Express server running in ${process.env.NODE_ENV || 'development'} mode`);
+  console.log(`🔌 API endpoints available at http://localhost:${port}/api`);
+  console.log(`📊 Database status: ${mongoose.connection.readyState === 1 ? '✅ Connected' : '❌ Disconnected'}\n`);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Rejection:', err);
+  server.close(() => process.exit(1));
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully...');
+  server.close(() => {
+    mongoose.connection.close(false, () => {
+      console.log('Server and database connections closed');
+      process.exit(0);
+    });
+  });
+});
