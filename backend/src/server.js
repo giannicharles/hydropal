@@ -22,7 +22,7 @@ const port = process.env.PORT || 5000; // Use environment variable with fallback
  * Enhanced with modern options and error handling
  */
 mongoose.connect(
-  process.env.MONGODB_URI || 'mongodb://localhost:27017/hydropal', // Updated DB name
+  process.env.MONGODB_URI || 'mongodb://localhost:27017/hydropal-db', // Updated DB name
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -49,7 +49,7 @@ app.use(morgan('dev')); // HTTP request logging
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(express.json()); // Parse JSON bodies
 
-// Mock authentication middleware (MOVE THIS BEFORE ROUTES)
+// Mock authentication middleware to be moved before routes
 app.use((req, res, next) => {
   // Replace with real auth middleware when ready
   req.user = { 
