@@ -1,0 +1,53 @@
+services:
+  frontend:
+    build:
+      context: frontend
+    ports:
+      - 3000:3000
+    stdin_open: true
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: always
+    networks:
+      - react-express
+    depends_on:
+      - backend
+
+  backend:
+    restart: always
+    build:
+      context: backend
+    ports:
+      - 5000:5000
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - mongodb
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/hydropal-db
+    networks:
+      - express-mongo
+      - react-express
+    expose: 
+      - 3000
+      - 27017
+  mongodb:
+    restart: always
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - express-mongo
+    expose:
+      - 5000
+      - 27017
+networks:
+  react-express:
+  express-mongo:
+
+volumes:
+  mongo_data:

@@ -21,9 +21,8 @@ const port = process.env.PORT || 5000; // Use environment variable with fallback
  * Database Connection Setup
  * Enhanced with modern options and error handling
  */
-mongoose.connect(
-  process.env.MONGODB_URI || 'mongodb://localhost:27017/hydropal-db', // Updated DB name
-  {
+const mongoUri = process.env.MONGO_URI || 'mongodb://mongodb:27017/hydropal-db'; // Default MongoDB URI
+mongoose.connect(mongoUri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of 30s
