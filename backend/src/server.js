@@ -40,8 +40,19 @@ mongoose.connect(mongoUri, {
 });
 
 app.use(helmet());
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:3000',
+  'http://127.0.0.1:3000'
+];
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // CoreUI frontend
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   optionsSuccessStatus: 200, // For legacy browser support because some legacy browsers (IE11, various SmartTVs) choke on 204
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],

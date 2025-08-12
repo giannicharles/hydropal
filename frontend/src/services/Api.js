@@ -1,8 +1,14 @@
 import axios from 'axios';
 
-// Create Axios instance with base URL
+// Determine API URL based on environment
+const baseURL = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000'   // For browser access
+  : import.meta.env.VITE_API_URL; // For Docker container access
+
+console.log(`Using API URL: ${baseURL}`);
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+  baseURL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'

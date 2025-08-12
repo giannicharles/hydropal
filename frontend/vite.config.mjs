@@ -47,23 +47,15 @@ export default defineConfig(() => {
       ],
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.scss'],
     },
-     server: {
+    server: {
       port: 3000,
-      host: '0.0.0.0', // Allow external access
+      host: '0.0.0.0',
       proxy: {
         '/api': {
-          target: 'http://localhost:5000',
+          target: 'http://backend:5000',
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/api/, ''),
-          configure: (proxy) => {
-            proxy.on('error', (err) => {
-              console.error('Proxy Error:', err);
-            });
-            proxy.on('proxyReq', (proxyReq) => {
-              console.log('Proxy Request to:', proxyReq.path);
-            });
-          }
         },
       },
     },
