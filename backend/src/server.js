@@ -39,21 +39,24 @@ mongoose.connect(mongoUri, {
   process.exit(1); // Exit process on connection failure
 });
 
-// Middleware Stack
 app.use(helmet());
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000', // CoreUI frontend
-  optionsSuccessStatus: 200 // For legacy browser support
+  optionsSuccessStatus: 200, // For legacy browser support because some legacy browsers (IE11, various SmartTVs) choke on 204
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(morgan('dev')); // HTTP request logging
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(express.json()); // Parse JSON bodies
 
 // Health Check Endpoint
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
   res.status(200).json({ 
     title: 'HydroPal API',
     status: 'operational',
+    version: '1.0.0',
     database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     timestamp: new Date().toISOString()
   });
@@ -66,8 +69,12 @@ app.use('/api/auth', authRouter); // Authentication routes
 // app.use('/api/plastic', plasticRoutes);
 
 // 404 Handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint not found' });
+app.use('/api', (req, res) => {
+  res.status(404).json({ 
+    error: 'API endpoint not found',
+    path: req.originalUrl,
+    method: req.method
+  });
 });
 
 // Global Error Handler

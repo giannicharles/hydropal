@@ -52,22 +52,22 @@ const _nav = [
       {
         component: CNavItem,
         name: 'Plastic Pollution',
-        to: '/404',
+        to: 'https://www.nationalgeographic.com/environment/article/plastic-pollution',
       },
       {
         component: CNavItem,
         name: 'Pollution in the Ocean',
-        to: '/404',
+        to: 'https://www.noaa.gov/education/resource-collections/ocean-coasts/ocean-pollution',
       },
       {
         component: CNavItem,
         name: 'Oil Spills',
-        to: '/404',
+        to: 'https://www.noaa.gov/education/resource-collections/ocean-coasts/oil-spills',
       },
       {
         component: CNavItem,
         name: 'Water Scarcity',
-        to: '/404',
+        to: 'https://www.unwater.org/water-facts/water-scarcity',
       },
     ],
   },

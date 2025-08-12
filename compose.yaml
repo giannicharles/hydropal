@@ -3,51 +3,45 @@ services:
     build:
       context: frontend
     ports:
-      - 3000:3000
-    stdin_open: true
+      - "3000:3000"
     volumes:
       - ./frontend:/usr/src/app
       - /usr/src/app/node_modules
-    restart: always
+    environment:
+      - VITE_API_URL=http://backend:5000
     networks:
-      - react-express
+      - hydropal-network
     depends_on:
       - backend
 
   backend:
-    restart: always
     build:
       context: backend
     ports:
-      - 5000:5000
+      - "5000:5000"
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/hydropal-db
+      - FRONTEND_URL=http://frontend:3000
+    networks:
+      - hydropal-network
     depends_on:
       - mongodb
-    environment:
-      MONGO_URI: mongodb://mongodb:27017/hydropal-db
-    networks:
-      - express-mongo
-      - react-express
-    expose: 
-      - 3000
-      - 27017
+
   mongodb:
-    restart: always
     image: mongo:latest
     ports:
-      - 27017:27017
+      - "27017:27017"
     volumes:
       - mongo_data:/data/db
     networks:
-      - express-mongo
-    expose:
-      - 5000
-      - 27017
+      - hydropal-network
+
 networks:
-  react-express:
-  express-mongo:
+  hydropal-network:
+    driver: bridge
 
 volumes:
   mongo_data:

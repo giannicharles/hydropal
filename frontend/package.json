@@ -13,10 +13,11 @@
   "license": "MIT",
   "author": "The CoreUI Team (https://github.com/orgs/coreui/people)",
   "scripts": {
+    "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "lint": "eslint",
-    "serve": "vite preview",
-    "start": "vite"
+    "preview": "vite preview --host 0.0.0.0",
+    "start": "vite --host 0.0.0.0"
   },
   "dependencies": {
     "@coreui/chartjs": "^4.1.0",
@@ -27,6 +28,7 @@
     "@coreui/react-chartjs": "^3.0.0",
     "@coreui/utils": "^2.0.2",
     "@popperjs/core": "^2.11.8",
+    "axios": "^1.11.0",
     "chart.js": "^4.4.7",
     "classnames": "^2.5.1",
     "core-js": "^3.40.0",

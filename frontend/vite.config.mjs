@@ -12,7 +12,7 @@ export default defineConfig(() => {
     css: {
       postcss: {
         plugins: [
-          autoprefixer({}), // add options if needed
+          autoprefixer({}),
         ],
       },
     },
@@ -33,16 +33,38 @@ export default defineConfig(() => {
     resolve: {
       alias: [
         {
-          find: 'src/',
-          replacement: `${path.resolve(__dirname, 'src')}/`,
+          find: /^~(.+)/,
+          replacement: path.join(process.cwd(), 'node_modules/$1'),
+        },
+        {
+          find: /^src\/(.+)/,
+          replacement: path.resolve(__dirname, 'src') + '/$1',
+        },
+        {
+          find: /^@\/(.+)/,
+          replacement: path.resolve(__dirname, 'src') + '/$1',
         },
       ],
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.scss'],
     },
-    server: {
+     server: {
       port: 3000,
+      host: '0.0.0.0', // Allow external access
       proxy: {
-        // https://vitejs.dev/config/server-options.html
+        '/api': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api/, ''),
+          configure: (proxy) => {
+            proxy.on('error', (err) => {
+              console.error('Proxy Error:', err);
+            });
+            proxy.on('proxyReq', (proxyReq) => {
+              console.log('Proxy Request to:', proxyReq.path);
+            });
+          }
+        },
       },
     },
   }

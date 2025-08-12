@@ -36,7 +36,8 @@ export const register = async (req, res) => {
     // Generate token
     const token = generateToken(user._id);
 
-    res.status(201).json({
+    // Return success response
+    return res.status(201).json({
       success: true,
       token,
       user: {
@@ -48,9 +49,18 @@ export const register = async (req, res) => {
     });
   } catch (err) {
     console.error('Registration error:', err);
+    
+    // More specific error messages
+    let errorMessage = 'Failed to register user';
+    if (err.name === 'ValidationError') {
+      errorMessage = Object.values(err.errors).map(val => val.message).join(', ');
+    } else if (err.code === 11000) {
+      errorMessage = 'Email is already registered';
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Failed to register user',
+      message: errorMessage,
       error: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
@@ -112,6 +122,7 @@ export const login = async (req, res) => {
  * @access  Private
  */
 export const getProfile = async (req, res) => {
+  
   try {
     const user = await User.findById(req.user.id);
     
@@ -140,3 +151,4 @@ export const getProfile = async (req, res) => {
     });
   }
 };
+
