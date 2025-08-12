@@ -7,9 +7,13 @@ import {
   updateData, 
   deleteData 
 } from '../controllers/index.js';
-import auth from '../middleware/Auth.js'; // Authentication middleware
+import auth from '../middleware/Auth.js';
+import authRouter from './Auth.js'; 
 
 const router = express.Router();
+
+// Add this route configuration
+router.use('/auth', authRouter);
 
 // Define validation arrays
 const createValidations = [

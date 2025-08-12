@@ -9,9 +9,10 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 // Import route files
+import authRouter from './routes/Auth.js'; // New user authentication routes
 import router from './routes/index.js'; // Core routes from template
-// import waterRoutes from "./routes/waterRoutes.js"; // Uncomment when ready
-// import plasticRoutes from "./routes/plasticRoutes.js"; // Uncomment when ready
+// import waterRoutes from "./routes/waterRoutes.js";
+// import plasticRoutes from "./routes/plasticRoutes.js";
 
 // Initialize Express application
 const app = express();
@@ -39,7 +40,7 @@ mongoose.connect(mongoUri, {
 });
 
 // Middleware Stack
-app.use(helmet()); // Security headers
+app.use(helmet());
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000', // CoreUI frontend
   optionsSuccessStatus: 200 // For legacy browser support
@@ -47,16 +48,6 @@ app.use(cors({
 app.use(morgan('dev')); // HTTP request logging
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(express.json()); // Parse JSON bodies
-
-// Mock authentication middleware to be moved before routes
-app.use((req, res, next) => {
-  // Replace with real auth middleware when ready
-  req.user = { 
-    id: 'USER_ID_FROM_JWT', 
-    role: 'user' // or 'admin'
-  };
-  next();
-});
 
 // Health Check Endpoint
 app.get('/', (req, res) => {
@@ -69,9 +60,10 @@ app.get('/', (req, res) => {
 });
 
 // API Routes
-app.use('/api', router); // Core routes from template
-// app.use('/api/water', waterRoutes); // Uncomment when ready
-// app.use('/api/plastic', plasticRoutes); // Uncomment when ready
+app.use('/api', router); // Core routes
+app.use('/api/auth', authRouter); // Authentication routes
+// app.use('/api/water', waterRoutes);
+// app.use('/api/plastic', plasticRoutes);
 
 // 404 Handler
 app.use((req, res) => {
