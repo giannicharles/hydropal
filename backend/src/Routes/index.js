@@ -6,8 +6,8 @@ import {
   createData, 
   updateData, 
   deleteData 
-} from '../Controllers/index.js';
-import auth from '../middleware/auth.js'; // Authentication middleware
+} from '../controllers/index.js';
+import auth from '../middleware/Auth.js'; // Authentication middleware
 
 const router = express.Router();
 

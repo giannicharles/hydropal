@@ -9,7 +9,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 // Import route files
-import router from './Routes/index.js'; // Core routes from template
+import router from './routes/index.js'; // Core routes from template
 // import waterRoutes from "./routes/waterRoutes.js"; // Uncomment when ready
 // import plasticRoutes from "./routes/plasticRoutes.js"; // Uncomment when ready
 

@@ -1,4 +1,4 @@
-import Data from '../Models/Data.js';
+import Data from '../models/Data.js';
 import { validationResult } from 'express-validator'; // For request validation
 
 /**
