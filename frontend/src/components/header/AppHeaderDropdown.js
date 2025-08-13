@@ -28,14 +28,10 @@ const AppHeaderDropdown = () => {
 
   return (
     <CDropdown variant="nav-item">
-      <CDropdownToggle placement="bottom-end" className="py-0" caret={false}>
-        <CIcon icon={cilUser} className="me-2" />
+      <CDropdownToggle caret={false}>
+        <CIcon icon={cilUser} size="lg" />
       </CDropdownToggle>
       <CDropdownMenu className="pt-0" placement="bottom-end">
-        <CDropdownItem onClick={() => navigate('/profile')}>
-          <CIcon icon={cilUser} className="me-2" />
-          Profile
-        </CDropdownItem>
         <CDropdownItem onClick={handleLogout}>
           <CIcon icon={cilAccountLogout} className="me-2" />
           Log Out
