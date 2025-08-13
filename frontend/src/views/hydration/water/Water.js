@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
+import * as ReactDOM from 'react-dom/client';
 import {
   CCard,
   CCardBody,
@@ -10,6 +11,14 @@ import {
   CFormInput,
   CFormSwitch,
 } from '@coreui/react';
+
+// Variable to track end of day
+const end = new Date();
+end.setUTCHours(23,59,59,999);
+
+// Variables to track current date and time
+const currDate = new Date().toLocaleDateString();
+const currTime = new Date().toLocaleTimeString();
 
 // SVG Icons Component with consistent 60px height
 const WaterIcons = {
