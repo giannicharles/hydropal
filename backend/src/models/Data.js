@@ -2,45 +2,37 @@
 import mongoose from 'mongoose';
 
 /**
- * Data Schema Definition
- * Enhanced with validation and documentation for water/plastic tracking
+ * Data Schema Definition for Water Tracking
  * 
  * @typedef {Object} DataSchema
- * @property {Object} data - The tracking payload (required)
+ * @property {Number} amount - Water amount in milliliters (required)
  * @property {Date} createdAt - Auto-generated timestamp
  * @property {Date} updatedAt - Auto-updating timestamp
+ * @property {ObjectId} userId - Reference to User model (required)
+ * @property {String} logType - Type of log ('water')
  */
 const DataSchema = new mongoose.Schema(
   {
-    data: {
-      type: Object,
-      required: [true, 'Data payload is required'], // Enhanced validation message
-      validate: {
-        validator: (value) => Object.keys(value).length > 0,
-        message: 'Data object cannot be empty'
-      }
+    amount: {
+      type: Number,
+      required: [true, 'Water amount is required'],
+      min: [1, 'Amount must be at least 1 ml']
     },
-    // Additional useful fields for tracking systems:
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      index: true // Improves query performance for user-specific data
+      index: true
     },
     logType: {
       type: String,
-      enum: ['water', 'plastic'], // Restrict to specific log types
-      required: true
+      enum: ['water'],
+      default: 'water'
     }
   },
   {
-    // Automatic timestamps for tracking creation/modification times
     timestamps: true,
-    
-    // Enable Mongoose strict mode (prevents undefined fields)
     strict: true,
-    
-    // Optimize for console.log readability
     toJSON: {
       virtuals: true,
       transform: (doc, ret) => {
@@ -53,8 +45,4 @@ const DataSchema = new mongoose.Schema(
   }
 );
 
-// Add text index for search functionality (optional)
-DataSchema.index({ 'data.notes': 'text' });
-
-// Export the model using modern syntax
 export default mongoose.model('Data', DataSchema);

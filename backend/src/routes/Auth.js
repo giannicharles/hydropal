@@ -1,7 +1,15 @@
 import express from 'express';
 import { check } from 'express-validator';
-import { register, login, getProfile } from '../controllers/Auth.js';
-import auth from '../middleware/Auth.js';
+import { 
+  register, 
+  login, 
+  getProfile,
+  logWater,        // NEW
+  getTodayWater,   // NEW
+  getWaterRanking, // NEW
+  getMonthlyWater  // NEW
+} from '../controllers/Auth.js';
+import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -37,5 +45,12 @@ router.post('/login', loginValidations, login);
  * @access  Private
  */
 router.get('/profile', auth, getProfile);
+
+// NEW: Water tracking routes
+// ==========================
+router.post('/water', auth, logWater);
+router.get('/water/today', auth, getTodayWater);
+router.get('/water/ranking', auth, getWaterRanking);
+router.get('/water/monthly', auth, getMonthlyWater);
 
 export default router;

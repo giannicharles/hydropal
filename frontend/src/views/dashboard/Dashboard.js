@@ -1,6 +1,5 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'; // Added useState and useEffect
 import classNames from 'classnames'
-
 import {
   CAvatar,
   CButton,
@@ -18,29 +17,12 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
+  CSpinner // NEW: Added spinner import
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
-  cibCcAmex,
-  cibCcApplePay,
-  cibCcMastercard,
-  cibCcPaypal,
-  cibCcStripe,
-  cibCcVisa,
-  cibGoogle,
-  cibFacebook,
-  cibLinkedin,
-  cifBr,
-  cifEs,
-  cifFr,
-  cifIn,
-  cifPl,
-  cifUs,
-  cibTwitter,
   cilCloudDownload,
   cilPeople,
-  cilUser,
-  cilUserFemale,
 } from '@coreui/icons'
 
 import avatar1 from 'src/assets/images/avatars/1.jpg'
@@ -53,11 +35,55 @@ import avatar6 from 'src/assets/images/avatars/6.jpg'
 import WidgetsBrand from '../widgets/WidgetsBrand'
 import WidgetsDropdown from '../widgets/WidgetsDropdown'
 import MainChart from './MainChart'
+import api from '../../services/Api';
 
 const Dashboard = () => {
+  const [todayWater, setTodayWater] = useState(0);
+  const [ranking, setRanking] = useState([]);
+  const [monthlyData, setMonthlyData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const DAILY_GOAL_ML = 2500;
+
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Fetch today's water
+        const todayRes = await api.get('/api/auth/water/today');
+        setTodayWater(todayRes.data.total);
+        
+        // Fetch ranking
+        const rankingRes = await api.get('/api/auth/water/ranking');
+        setRanking(rankingRes.data.data);
+        
+        // Fetch monthly data
+        const monthlyRes = await api.get('/api/auth/water/monthly');
+        setMonthlyData(monthlyRes.data.data);
+      } catch (error) {
+        console.error('Dashboard data error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchDashboardData();
+  }, []);
+
   const progressExample = [
-    { title: 'My Intake', value: '29.703 oz', percent: 40, color: 'info' },
-    { title: 'Daily Goal', value: '85 oz', percent: 57, color: 'success' },
+    { 
+      title: 'My Intake', 
+      value: `${(todayWater / 29.5735).toFixed(1)} oz`, 
+      percent: Math.min((todayWater / DAILY_GOAL_ML) * 100, 100), 
+      color: 'info' 
+    },
+    { 
+      title: 'Daily Goal', 
+      value: `${(DAILY_GOAL_ML / 29.5735).toFixed(1)} oz`, 
+      percent: 100, 
+      color: 'success' 
+    },
     { title: 'Male Average', value: '124 oz', percent: 82, color: 'danger' },
     { title: 'Female Average', value: '92 oz', percent: 61, color: 'warning' },
     { title: 'Lowest Country Average', value: '65 oz', percent: 43, color: 'secondary' },
@@ -73,80 +99,44 @@ const Dashboard = () => {
     { title: 'Sunday', value1: 9, value2: 85 },
   ]
 
-  const tableExample = [
-    {
-      avatar: { src: avatar1, status: 'success' },
-      user: {
-        name: 'Yiorgos Avraamu',
-        new: true,
-        registered: 'Jan 1, 2023',
-      },
-      country: { name: 'USA', flag: cifUs },
-      usage: {
-        value: 50,
-        period: 'Jun 11, 2023 - Jul 10, 2023',
-        color: 'success',
-      },
-      payment: { name: 'Mastercard', icon: cibCcMastercard },
-      activity: '10 sec ago',
+  // NEW: Avatar selection based on ranking position
+  const getAvatarForRank = (index) => {
+    const avatars = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6];
+    return avatars[index % avatars.length];
+  };
+
+  // NEW: Status color based on ranking position
+  const getStatusForRank = (index) => {
+    if (index === 0) return 'success';
+    if (index === 1) return 'info';
+    if (index === 2) return 'warning';
+    return 'secondary';
+  };
+
+  // Format ranking data for table
+  const tableExample = ranking.map((user, index) => ({
+    avatar: { 
+      src: getAvatarForRank(index),
+      status: getStatusForRank(index)
     },
-    {
-      avatar: { src: avatar2, status: 'danger' },
-      user: {
-        name: 'Avram Tarasios',
-        new: false,
-        registered: 'Jan 1, 2023',
-      },
-      country: { name: 'Brazil', flag: cifBr },
-      usage: {
-        value: 22,
-        period: 'Jun 11, 2023 - Jul 10, 2023',
-        color: 'info',
-      },
-      payment: { name: 'Visa', icon: cibCcVisa },
-      activity: '5 minutes ago',
+    user: {
+      name: user.name,
+      rank: index + 1
     },
-    {
-      avatar: { src: avatar3, status: 'warning' },
-      user: { name: 'Quintin Ed', new: true, registered: 'Jan 1, 2023' },
-      country: { name: 'India', flag: cifIn },
-      usage: {
-        value: 74,
-        period: 'Jun 11, 2023 - Jul 10, 2023',
-        color: 'warning',
-      },
-      payment: { name: 'Stripe', icon: cibCcStripe },
-      activity: '1 hour ago',
-    },
-    {
-      avatar: { src: avatar4, status: 'secondary' },
-      user: { name: 'Enéas Kwadwo', new: true, registered: 'Jan 1, 2023' },
-      country: { name: 'France', flag: cifFr },
-      usage: {
-        value: 98,
-        period: 'Jun 11, 2023 - Jul 10, 2023',
-        color: 'danger',
-      },
-      payment: { name: 'PayPal', icon: cibCcPaypal },
-      activity: 'Last month',
-    },
-    {
-      avatar: { src: avatar5, status: 'success' },
-      user: {
-        name: 'Agapetus Tadeáš',
-        new: true,
-        registered: 'Jan 1, 2023',
-      },
-      country: { name: 'Spain', flag: cifEs },
-      usage: {
-        value: 22,
-        period: 'Jun 11, 2023 - Jul 10, 2023',
-        color: 'primary',
-      },
-      payment: { name: 'Google Wallet', icon: cibCcApplePay },
-      activity: 'Last week',
-    },
-  ]
+    usage: {
+      value: Math.round((user.totalAmount / DAILY_GOAL_ML) * 100),
+      color: index === 0 ? 'success' : index === 1 ? 'info' : index === 2 ? 'warning' : 'secondary'
+    }
+  }));
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '80vh' }}>
+        <CSpinner color="primary" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -166,7 +156,7 @@ const Dashboard = () => {
               </CButton>
             </CCol>
           </CRow>
-          <MainChart />
+          <MainChart monthlyData={monthlyData} />
         </CCardBody>
         <CCardFooter>
           <CRow
@@ -202,7 +192,7 @@ const Dashboard = () => {
                     <CCol xs={6}>
                       <div className="border-start border-start-4 border-start-info py-1 px-3">
                         <div className="text-body-secondary text-truncate small">My Intake</div>
-                        <div className="fs-5 fw-semibold">492</div>
+                        <div className="fs-5 fw-semibold">{(todayWater / 29.5735).toFixed(1)} oz</div>
                       </div>
                     </CCol>
                     <CCol xs={6}>
@@ -210,7 +200,7 @@ const Dashboard = () => {
                         <div className="text-body-secondary text-truncate small">
                           Daily Goal
                         </div>
-                        <div className="fs-5 fw-semibold">595 oz</div>
+                        <div className="fs-5 fw-semibold">{(DAILY_GOAL_ML / 29.5735).toFixed(1)} oz</div>
                       </div>
                     </CCol>
                   </CRow>
@@ -237,16 +227,16 @@ const Dashboard = () => {
                     <CTableHeaderCell className="bg-body-tertiary text-center">
                       <CIcon icon={cilPeople} />
                     </CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary">Coleagues</CTableHeaderCell>
+                    <CTableHeaderCell className="bg-body-tertiary">User</CTableHeaderCell>
                     <CTableHeaderCell className="bg-body-tertiary text-center">
                       Rank
                     </CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary">Monthly Performance</CTableHeaderCell>
+                    <CTableHeaderCell className="bg-body-tertiary">Daily Progress</CTableHeaderCell>
                   </CTableRow>
                 </CTableHead>
                 <CTableBody>
                   {tableExample.map((item, index) => (
-                    <CTableRow v-for="item in tableItems" key={index}>
+                    <CTableRow key={index}>
                       <CTableDataCell className="text-center">
                         <CAvatar size="md" src={item.avatar.src} status={item.avatar.status} />
                       </CTableDataCell>
@@ -254,11 +244,12 @@ const Dashboard = () => {
                         <div>{item.user.name}</div>
                       </CTableDataCell>
                       <CTableDataCell className="text-center">
-                        <CIcon size="xl" icon={item.country.flag} title={item.country.name} />
+                        <div className="fw-bold">#{item.user.rank}</div>
                       </CTableDataCell>
                       <CTableDataCell>
                         <div className="d-flex justify-content-between text-nowrap">
                           <div className="fw-semibold">{item.usage.value}%</div>
+                          <div>{(DAILY_GOAL_ML * item.usage.value / 100 / 29.5735).toFixed(1)} oz</div>
                         </div>
                         <CProgress thin color={item.usage.color} value={item.usage.value} />
                       </CTableDataCell>

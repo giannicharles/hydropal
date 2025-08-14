@@ -1,5 +1,4 @@
-import React, { useState } from 'react'
-import * as ReactDOM from 'react-dom/client';
+import React, { useState, useEffect } from 'react';
 import {
   CCard,
   CCardBody,
@@ -10,7 +9,9 @@ import {
   CCol,
   CFormInput,
   CFormSwitch,
+  CSpinner // Added spinner
 } from '@coreui/react';
+import api from '../../../services/Api'; // Import API service
 
 // Variable to track end of day
 const end = new Date();
@@ -206,22 +207,48 @@ const Water = () => {
   const [unit, setUnit] = useState('ml');
   const [showSuccess, setShowSuccess] = useState(false);
   const [lastAddedAmount, setLastAddedAmount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [goalMl, setGoalMl] = useState(2500);
 
   const OZ_TO_ML = 29.5735;
-  const DAILY_GOAL_ML = 2500;
+
+  // Fetch today's water
+  useEffect(() => {
+    const fetchTodayWater = async () => {
+      try {
+        setIsLoading(true);
+        const response = await api.get('/api/auth/water/today');
+        setTotalMl(response.data.total || 0);
+      } catch (error) {
+        console.error('Failed to fetch today\'s water:', error);
+        alert('Failed to load water data. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchTodayWater();
+  }, []);
 
   const convert = (ml) => {
     return unit === 'ml'
-      ? `${ml.toFixed(0)} ml`
+      ? `${Math.round(ml)} ml`
       : `${(ml / OZ_TO_ML).toFixed(1)} oz`;
   };
 
-  const addWater = (amount) => {
+  const addWater = async (amount) => {
     const amountInMl = unit === 'ml' ? amount : amount * OZ_TO_ML;
-    setTotalMl((prev) => prev + amountInMl);
-    setLastAddedAmount(amount);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 2000);
+    
+    try {
+      await api.post('/api/auth/water', { amount: amountInMl });
+      setTotalMl(prev => prev + amountInMl);
+      setLastAddedAmount(amount);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 2000);
+    } catch (error) {
+      console.error('Failed to log water:', error);
+      alert('Failed to save water intake. Please try again.');
+    }
   };
 
   const handleCustomAdd = () => {
@@ -229,14 +256,33 @@ const Water = () => {
     if (!isNaN(num) && num > 0) {
       addWater(num);
       setCustomAmount('');
+    } else {
+      alert('Please enter a valid positive number');
     }
   };
 
-  const clearTotal = () => {
-    setTotalMl(0);
+  const clearTotal = async () => {
+    if (window.confirm('Are you sure you want to reset today\'s progress?')) {
+      try {
+        // Delete today's logs from backend
+        await api.delete('/api/auth/water/today');
+        setTotalMl(0);
+      } catch (error) {
+        console.error('Failed to reset water data:', error);
+        alert('Failed to reset progress. Please try again.');
+      }
+    }
   };
 
-  const progressPercentage = Math.min((totalMl / DAILY_GOAL_ML) * 100, 100);
+  const progressPercentage = Math.min((totalMl / goalMl) * 100, 100);
+
+  if (isLoading) {
+    return (
+      <CContainer className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
+        <CSpinner color="primary" />
+      </CContainer>
+    );
+  }
 
   return (
     <CContainer className="py-4" style={{ maxWidth: '500px' }}>
@@ -249,7 +295,7 @@ const Water = () => {
             <span className="me-2">{unit === 'ml' ? 'ml' : 'oz'}</span>
             <CFormSwitch
               checked={unit === 'oz'}
-              onChange={() => setUnit((prev) => (prev === 'ml' ? 'oz' : 'ml'))}
+              onChange={() => setUnit(prev => (prev === 'ml' ? 'oz' : 'ml'))}
             />
           </div>
         </CCardHeader>
@@ -259,11 +305,11 @@ const Water = () => {
             <h5 className="text-body-secondary mb-2">
               {progressPercentage >= 100 ? 'Goal Achieved! 🏆' : 'Daily Progress'}
             </h5>
-            <WaterBottle currentMl={totalMl} goalMl={DAILY_GOAL_ML} />
+            <WaterBottle currentMl={totalMl} goalMl={goalMl} />
             <div style={{ marginTop: '10px' }}>
               <h2 className="text-primary mb-1">{convert(totalMl)}</h2>
               <p className="text-body-secondary mb-2">
-                Goal: {convert(DAILY_GOAL_ML)} ({progressPercentage.toFixed(0)}%)
+                Goal: {convert(goalMl)} ({progressPercentage.toFixed(0)}%)
               </p>
               <div className="progress mx-auto" style={{ width: '200px', height: '6px' }}>
                 <div
@@ -339,6 +385,7 @@ const Water = () => {
             <CCol xs={8}>
               <CFormInput
                 type="number"
+                min="1"
                 placeholder={`Enter custom amount (${unit})`}
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
@@ -372,7 +419,7 @@ const Water = () => {
               className="rounded-3"
               size="sm"
             >
-              Reset Progress
+              Reset Today's Progress
             </CButton>
           </div>
         </CCardBody>
