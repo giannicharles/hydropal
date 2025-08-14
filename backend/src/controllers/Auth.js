@@ -227,6 +227,43 @@ export const getTodayWater = async (req, res) => {
 };
 
 /**
+ * @desc    Clear today's water logs
+ * @route   DELETE /api/auth/water/today
+ * @access  Private
+ */
+export const clearTodayWater = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Delete all water logs for the user today
+    const result = await Data.deleteMany({
+      userId: req.user.id,
+      logType: 'water',
+      createdAt: {
+        $gte: today,
+        $lt: tomorrow
+      }
+    });
+
+    res.json({
+      success: true,
+      message: `Deleted ${result.deletedCount} water logs`,
+      deletedCount: result.deletedCount
+    });
+  } catch (err) {
+    console.error('Clear today water error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to clear today\'s water logs'
+    });
+  }
+};
+
+/**
  * @desc    Get water ranking
  * @route   GET /api/auth/water/ranking
  * @access  Private

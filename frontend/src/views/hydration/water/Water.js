@@ -265,8 +265,14 @@ const Water = () => {
     if (window.confirm('Are you sure you want to reset today\'s progress?')) {
       try {
         // Delete today's logs from backend
-        await api.delete('/api/auth/water/today');
-        setTotalMl(0);
+        const response = await api.delete('/api/auth/water/today');
+        
+        // Only reset if deletion was successful
+        if (response.data.success) {
+          setTotalMl(0);
+        } else {
+          throw new Error('Failed to reset progress on the server');
+        }
       } catch (error) {
         console.error('Failed to reset water data:', error);
         alert('Failed to reset progress. Please try again.');
@@ -274,6 +280,7 @@ const Water = () => {
     }
   };
 
+  
   const progressPercentage = Math.min((totalMl / goalMl) * 100, 100);
 
   if (isLoading) {

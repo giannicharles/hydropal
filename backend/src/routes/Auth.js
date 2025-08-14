@@ -7,7 +7,8 @@ import {
   logWater,        
   getTodayWater,   
   getWaterRanking, 
-  getMonthlyWater  
+  getMonthlyWater,
+  clearTodayWater
 } from '../controllers/Auth.js';
 import auth from '../middleware/auth.js';
 
@@ -50,6 +51,7 @@ router.get('/profile', auth, getProfile);
 // ==========================
 router.post('/water', auth, logWater);
 router.get('/water/today', auth, getTodayWater);
+router.delete('/water/today', auth, clearTodayWater);
 router.get('/water/ranking', auth, getWaterRanking);
 router.get('/water/monthly', auth, getMonthlyWater);
 
