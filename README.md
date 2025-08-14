@@ -20,3 +20,9 @@ docker exec -it <container name> /bin/bash
 ```
 docker logs <container name>
 ```
+### View Database Storage
+```
+docker exec -it hydropal-mongodb-1 mongosh
+use hydropal-db
+db.<collection name>.find()
+```
