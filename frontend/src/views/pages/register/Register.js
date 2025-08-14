@@ -52,8 +52,8 @@ const Register = () => {
         password: formData.password
       })
       
-      setSuccess('Account created successfully! Redirecting to login...')
-      setTimeout(() => navigate('/login'), 2000)
+      setSuccess('Account created successfully! Redirecting to Dashboard...')
+      setTimeout(() => navigate('/dashboard'), 2000)
     } catch (err) {
       console.error('Registration error:', err)
       
