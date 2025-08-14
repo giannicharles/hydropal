@@ -4,10 +4,10 @@ import {
   register, 
   login, 
   getProfile,
-  logWater,        // NEW
-  getTodayWater,   // NEW
-  getWaterRanking, // NEW
-  getMonthlyWater  // NEW
+  logWater,        
+  getTodayWater,   
+  getWaterRanking, 
+  getMonthlyWater  
 } from '../controllers/Auth.js';
 import auth from '../middleware/auth.js';
 
@@ -46,7 +46,7 @@ router.post('/login', loginValidations, login);
  */
 router.get('/profile', auth, getProfile);
 
-// NEW: Water tracking routes
+// Water tracking routes
 // ==========================
 router.post('/water', auth, logWater);
 router.get('/water/today', auth, getTodayWater);

@@ -17,7 +17,7 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
-  CSpinner // NEW: Added spinner import
+  CSpinner // Added spinner import
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -99,13 +99,13 @@ const Dashboard = () => {
     { title: 'Sunday', value1: 9, value2: 85 },
   ]
 
-  // NEW: Avatar selection based on ranking position
+  // Avatar selection based on ranking position
   const getAvatarForRank = (index) => {
     const avatars = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6];
     return avatars[index % avatars.length];
   };
 
-  // NEW: Status color based on ranking position
+  // Status color based on ranking position
   const getStatusForRank = (index) => {
     if (index === 0) return 'success';
     if (index === 1) return 'info';

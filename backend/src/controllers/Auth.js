@@ -1,5 +1,5 @@
 import User from '../models/User.js';
-import Data from '../models/Data.js'; // NEW: Import Data model for tracking water usage and rank
+import Data from '../models/Data.js'; // Import Data model for tracking water usage and rank
 import jwt from 'jsonwebtoken';
 
 // Generate JWT token
@@ -153,7 +153,7 @@ export const getProfile = async (req, res) => {
   }
 };
 
-// NEW: Water Log Controller Functions
+// Water Log Controller Functions
 // ===================================
 
 /**
