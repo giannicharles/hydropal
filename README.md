@@ -60,7 +60,37 @@ git clone https://github.com/giannicharles/hydropal.git
 cd hydropal
 ```
 
-### 6. Build and Start the Application
+### 6. Create Environment Files
+Create the required `.env` files for both frontend and backend:
+
+**Frontend environment file:**
+```powershell
+# Create frontend/.env
+echo "VITE_API_URL=http://localhost:5000" > frontend/.env
+```
+
+**Backend environment file:**
+```powershell
+# Create backend/.env
+@"
+MONGO_URI=mongodb://mongodb:27017/hydropal-db
+JWT_SECRET=your_strong_secret_here
+JWT_EXPIRE=30d
+FRONTEND_URL=http://localhost:3000
+NODE_ENV=development
+"@ > backend/.env
+```
+
+> [!IMPORTANT]
+> **Security Recommendation:** Change `JWT_SECRET` to a stronger, unique value:
+> ```
+> JWT_SECRET=hydropal_strong_secret_key_2025_custom
+> ```
+
+> [!NOTE]
+> These .env files are excluded from version control via `.gitignore` to protect configuration data.
+
+### 7. Build and Start the Application
 ```powershell
 docker compose up -d
 ```
