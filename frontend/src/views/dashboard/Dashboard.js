@@ -109,8 +109,9 @@ const getCurrentMonthAverage = () => {
 };
 
 const monthlyTotal = getCurrentMonthAverage();
-const daysInMonth = new Date().getDate();
-const monthlyAverage = monthlyTotal / daysInMonth;
+const now = new Date();
+const daysPassed = now.getDate();
+const monthlyAverage = daysPassed > 0 ? monthlyTotal / daysPassed : 0;
 
 const progressExample = [
   { 
@@ -153,7 +154,7 @@ const progressExample = [
 const today = new Date().getDay();
 
 // Day of the week variables
-let sun, mon, tue, wed, thur, fri, sat;
+let [sun, mon, tue, wed, thur, fri, sat] = Array(7).fill(0);
 
 if (today === 0) { sun = todayWater; }
 if (today === 1) { mon = todayWater; }
@@ -169,49 +170,49 @@ const progressGroupExample1 = [
     title: 'Sunday', 
     value1Text: sun ? `${(sun / 29.5735).toFixed(1)} oz` : '0.0 oz',
     value1Percent: sun ? Math.min((sun / DAILY_GOAL_ML) * 100, 100) : 0,
-    value2Text: '85.0 oz',
+    value2Text: '84.5 oz',
     value2Percent: 100
   },
   { 
     title: 'Monday', 
     value1Text: mon ? `${(mon / 29.5735).toFixed(1)} oz` : '0.0 oz',
     value1Percent: mon ? Math.min((mon / DAILY_GOAL_ML) * 100, 100) : 0,
-    value2Text: '85.0 oz',
+    value2Text: '84.5 oz',
     value2Percent: 100
   },
   { 
     title: 'Tuesday', 
     value1Text: tue ? `${(tue / 29.5735).toFixed(1)} oz` : '0.0 oz',
     value1Percent: tue ? Math.min((tue / DAILY_GOAL_ML) * 100, 100) : 0,
-    value2Text: '85.0 oz',
+    value2Text: '84.5 oz',
     value2Percent: 100
   },
   { 
     title: 'Wednesday', 
     value1Text: wed ? `${(wed / 29.5735).toFixed(1)} oz` : '0.0 oz',
     value1Percent: wed ? Math.min((wed / DAILY_GOAL_ML) * 100, 100) : 0,
-    value2Text: '85.0 oz',
+    value2Text: '84.5 oz',
     value2Percent: 100
   },
   { 
     title: 'Thursday', 
     value1Text: thur ? `${(thur / 29.5735).toFixed(1)} oz` : '0.0 oz',
     value1Percent: thur ? Math.min((thur / DAILY_GOAL_ML) * 100, 100) : 0,
-    value2Text: '85.0 oz',
+    value2Text: '84.5 oz',
     value2Percent: 100
   },
   { 
     title: 'Friday', 
     value1Text: fri ? `${(fri / 29.5735).toFixed(1)} oz` : '0.0 oz',
     value1Percent: fri ? Math.min((fri / DAILY_GOAL_ML) * 100, 100) : 0,
-    value2Text: '85.0 oz',
+    value2Text: '84.5 oz',
     value2Percent: 100
   },
   { 
     title: 'Saturday', 
     value1Text: sat ? `${(sat / 29.5735).toFixed(1)} oz` : '0.0 oz',
     value1Percent: sat ? Math.min((sat / DAILY_GOAL_ML) * 100, 100) : 0,
-    value2Text: '85.0 oz',
+    value2Text: '84.5 oz',
     value2Percent: 100
   },
 ];
