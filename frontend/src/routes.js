@@ -4,7 +4,6 @@ const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
 const Typography = React.lazy(() => import('./views/theme/typography/Typography'))
 
-// API Servies
 // HydroPal 
 const Water = React.lazy(() => import('./views/hydration/water/Water'))
 const Plastics = React.lazy(() => import('./views/hydration/plastics/Plastics'))
