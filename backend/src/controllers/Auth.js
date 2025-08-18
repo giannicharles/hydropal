@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Data from '../models/Data.js'; // Import Data model for tracking water usage and rank
 import jwt from 'jsonwebtoken';
@@ -336,39 +337,40 @@ export const getWaterRanking = async (req, res) => {
  */
 export const getMonthlyWater = async (req, res) => {
   try {
-    // Get start and end of current month
+    // Get current year
     const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const year = now.getFullYear();
     
-    // Group by day
+    // Get monthly totals for the current year
     const monthlyData = await Data.aggregate([
       {
         $match: {
-          userId: mongoose.Types.ObjectId(req.user.id),
-          createdAt: { $gte: start, $lte: end }
+          userId: new mongoose.Types.ObjectId(req.user.id),
+          createdAt: {
+            $gte: new Date(year, 0, 1), // Jan 1
+            $lte: new Date(year, 11, 31) // Dec 31
+          }
         }
       },
       {
         $group: {
-          _id: { $dayOfMonth: '$createdAt' },
-          totalAmount: { $sum: '$amount' }
+          _id: { $month: "$createdAt" },
+          totalAmount: { $sum: "$amount" }
         }
       },
       {
         $project: {
           _id: 0,
-          day: '$_id',
+          month: "$_id",
           totalAmount: 1
         }
       }
     ]);
-    
-    // Fill in missing days with 0
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const filledData = Array.from({ length: daysInMonth }, (_, i) => {
-      const day = i + 1;
-      const entry = monthlyData.find(d => d.day === day);
+
+    // Create array with 12 months, fill missing months with 0
+    const filledData = Array.from({ length: 12 }, (_, i) => {
+      const month = i + 1;
+      const entry = monthlyData.find(d => d.month === month);
       return entry ? entry.totalAmount : 0;
     });
 

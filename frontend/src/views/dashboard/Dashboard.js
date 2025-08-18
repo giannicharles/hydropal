@@ -101,34 +101,16 @@ const Dashboard = () => {
 
 // Updated progressExample that uses monthly average for "My Intake"
 const getCurrentMonthAverage = () => {
-  // If we have monthly data
-  if (monthlyData && monthlyData.length > 0) {
-    const currentMonth = new Date().getMonth();
-    
-    // If monthlyData is an array of 12 numbers (Jan-Dec values)
-    if (monthlyData.length === 12 && typeof monthlyData[0] === 'number') {
-      return monthlyData[currentMonth] || 0;
-    }
-    
-    // If monthlyData is an array of objects with month and amount properties
-    if (monthlyData[0]?.month !== undefined && monthlyData[0]?.amount !== undefined) {
-      const currentMonthData = monthlyData.find(data => data.month === currentMonth);
-      return currentMonthData?.amount || 0;
-    }
-    
-    // If monthlyData is an array but structure is unknown, try to use the last entry
-    const lastEntry = monthlyData[monthlyData.length - 1];
-    if (typeof lastEntry === 'number') {
-      return lastEntry;
-    }
-    return lastEntry?.amount || lastEntry || 0;
+  if (monthlyData && monthlyData.length === 12) {
+    const currentMonthIndex = new Date().getMonth();
+    return monthlyData[currentMonthIndex] || 0;
   }
-  
-  // Fallback to today's water if no monthly data
   return todayWater || 0;
 };
 
-const monthlyAverage = getCurrentMonthAverage();
+const monthlyTotal = getCurrentMonthAverage();
+const daysInMonth = new Date().getDate();
+const monthlyAverage = monthlyTotal / daysInMonth;
 
 const progressExample = [
   { 

@@ -55,33 +55,13 @@ const MainChart = ({ monthlyData = [] }) => {
       return Array(12).fill(0);
     }
 
-    const chartData = Array(12).fill(0);
-
-    try {
-      // Handle array of numbers
-      if (typeof monthlyData[0] === 'number') {
-        monthlyData.slice(0, 12).forEach((amount, index) => {
-          chartData[index] = amount / 29.5735;
-        });
-      } 
-      // Handle array of objects
-      else if (typeof monthlyData[0] === 'object') {
-        monthlyData.forEach(item => {
-          const monthIndex = item.month !== undefined ? 
-                          (item.month > 11 ? item.month - 1 : item.month) : // Handle 1-12 vs 0-11
-                          monthlyData.indexOf(item);
-          
-          if (monthIndex >= 0 && monthIndex < 12) {
-            const amount = item.amount || item.total || 0;
-            chartData[monthIndex] = amount / 29.5735;
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Error processing monthly data:', error);
+    // If we have array of numbers (monthly totals)
+    if (monthlyData.length === 12 && typeof monthlyData[0] === 'number') {
+      return monthlyData.map(total => total / 29.5735); // Convert to ounces
     }
 
-    return chartData;
+    // Handle other formats if necessary
+    return Array(12).fill(0);
   };
 
   const chartData = prepareMonthlyChartData();
