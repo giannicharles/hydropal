@@ -31,6 +31,10 @@ import avatar3 from 'src/assets/images/avatars/3.jpg'
 import avatar4 from 'src/assets/images/avatars/4.jpg'
 import avatar5 from 'src/assets/images/avatars/5.jpg'
 import avatar6 from 'src/assets/images/avatars/6.jpg'
+import avatar7 from 'src/assets/images/avatars/7.jpg'
+import avatar8 from 'src/assets/images/avatars/8.jpg'
+import avatar9 from 'src/assets/images/avatars/9.jpg'
+import avatar10 from 'src/assets/images/avatars/10.jpg'
 
 import WidgetsBrand from '../widgets/WidgetsBrand'
 import WidgetsDropdown from '../widgets/WidgetsDropdown'
@@ -219,17 +223,17 @@ const progressGroupExample1 = [
 
   // Avatar selection based on ranking position
   const getAvatarForRank = (index) => {
-    const avatars = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6];
+    const avatars = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6, avatar7, avatar8, avatar9, avatar10];
     return avatars[index % avatars.length];
   };
 
-  // Status color based on ranking position
-  const getStatusForRank = (index) => {
-    if (index === 0) return 'success';
-    if (index === 1) return 'info';
-    if (index === 2) return 'warning';
-    return 'secondary';
-  };
+  // Add this function before the tableExample mapping
+const getStatusForRank = (index) => {
+  if (index === 0) return 'success'; // Top rank
+  if (index === 1) return 'warning';    // Second rank
+  if (index === 2) return 'danger'; // Third rank
+  return 'secondary';                // Other ranks
+};
 
   // Format ranking data for table
   const tableExample = ranking.map((user, index) => ({
@@ -243,7 +247,7 @@ const progressGroupExample1 = [
     },
     usage: {
       value: Math.round((user.totalAmount / DAILY_GOAL_ML) * 100),
-      color: index === 0 ? 'success' : index === 1 ? 'info' : index === 2 ? 'warning' : 'secondary'
+      color: index === 0 ? 'success' : index === 1 ? 'warning' : index === 2 ? 'danger' : 'secondary'
     }
   }));
 
@@ -356,7 +360,7 @@ const progressGroupExample1 = [
                   {tableExample.map((item, index) => (
                     <CTableRow key={index}>
                       <CTableDataCell className="text-center">
-                        <CAvatar size="md" src={item.avatar.src} status={item.avatar.status} />
+                        <CAvatar size="lg" src={item.avatar.src} status={item.avatar.status} />
                       </CTableDataCell>
                       <CTableDataCell>
                         <div>{item.user.name}</div>
