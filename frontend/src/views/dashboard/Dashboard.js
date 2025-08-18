@@ -58,11 +58,35 @@ const Dashboard = () => {
         const rankingRes = await api.get('/api/auth/water/ranking');
         setRanking(rankingRes.data.data);
         
-        // Fetch monthly data
-        const monthlyRes = await api.get('/api/auth/water/monthly');
-        setMonthlyData(monthlyRes.data.data);
+        // Fetch monthly data with enhanced error handling
+        try {
+          const monthlyRes = await api.get('/api/auth/water/monthly');
+          console.log('Monthly data received:', monthlyRes.data); // Debug log
+          
+          // Handle different response formats
+          if (Array.isArray(monthlyRes.data)) {
+            setMonthlyData(monthlyRes.data); // Direct array response
+          } else if (monthlyRes.data.data) {
+            setMonthlyData(monthlyRes.data.data); // { data: [...] } response
+          } else {
+            console.warn('Unexpected monthly data format:', monthlyRes.data);
+            setMonthlyData([]); // Fallback empty array
+          }
+        } catch (monthlyError) {
+          console.error('Monthly data fetch failed:', {
+            status: monthlyError.response?.status,
+            data: monthlyError.response?.data,
+            message: monthlyError.message
+          });
+          setMonthlyData([]); // Fallback empty array
+        }
+        
       } catch (error) {
-        console.error('Dashboard data error:', error);
+        console.error('Dashboard data error:', {
+          message: error.message,
+          response: error.response?.data,
+          config: error.config
+        });
       } finally {
         setIsLoading(false);
       }
@@ -71,23 +95,73 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
-  const progressExample = [
-    { 
-      title: 'My Intake', 
-      value: `${(todayWater / 29.5735).toFixed(1)} oz`, 
-      percent: Math.min((todayWater / DAILY_GOAL_ML) * 100, 100), 
-      color: 'info' 
-    },
-    { 
-      title: 'Daily Goal', 
-      value: `${(DAILY_GOAL_ML / 29.5735).toFixed(1)} oz`, 
-      percent: 100, 
-      color: 'success' 
-    },
-    { title: 'Male Average', value: '124 oz', percent: 82, color: 'danger' },
-    { title: 'Female Average', value: '92 oz', percent: 61, color: 'warning' },
-    { title: 'Lowest Country Average', value: '65 oz', percent: 43, color: 'secondary' },
-  ]
+/*
+ * MONTHLY WATER INTAKE TRACKING COMPONENT
+ */
+
+// Updated progressExample that uses monthly average for "My Intake"
+const getCurrentMonthAverage = () => {
+  // If we have monthly data
+  if (monthlyData && monthlyData.length > 0) {
+    const currentMonth = new Date().getMonth();
+    
+    // If monthlyData is an array of 12 numbers (Jan-Dec values)
+    if (monthlyData.length === 12 && typeof monthlyData[0] === 'number') {
+      return monthlyData[currentMonth] || 0;
+    }
+    
+    // If monthlyData is an array of objects with month and amount properties
+    if (monthlyData[0]?.month !== undefined && monthlyData[0]?.amount !== undefined) {
+      const currentMonthData = monthlyData.find(data => data.month === currentMonth);
+      return currentMonthData?.amount || 0;
+    }
+    
+    // If monthlyData is an array but structure is unknown, try to use the last entry
+    const lastEntry = monthlyData[monthlyData.length - 1];
+    if (typeof lastEntry === 'number') {
+      return lastEntry;
+    }
+    return lastEntry?.amount || lastEntry || 0;
+  }
+  
+  // Fallback to today's water if no monthly data
+  return todayWater || 0;
+};
+
+const monthlyAverage = getCurrentMonthAverage();
+
+const progressExample = [
+  { 
+    title: 'My Intake', 
+    value: `${(monthlyAverage / 29.5735).toFixed(1)} oz`, 
+    percent: Math.min(((monthlyAverage / 29.5735) / 150) * 100, 100), 
+    color: 'info' 
+  },
+  { 
+    title: 'Daily Goal', 
+    value: `${(DAILY_GOAL_ML / 29.5735).toFixed(1)} oz`, 
+    percent: ((DAILY_GOAL_ML / 29.5735) / 150) * 100, 
+    color: 'success' 
+  },
+  { 
+    title: 'Men Recommended', 
+    value: '124 oz', 
+    percent: (124 / 150) * 100, 
+    color: 'primary' 
+  },
+  { 
+    title: 'Women Recommended', 
+    value: '92 oz', 
+    percent: (92 / 150) * 100, 
+    color: 'warning' 
+  },
+  { 
+    title: 'Minimum Healthy', 
+    value: '64 oz', 
+    percent: (64 / 150) * 100, 
+    color: 'secondary' 
+  },
+]
 
 /* 
  * DAILY WATER INTAKE TRACKING COMPONENT

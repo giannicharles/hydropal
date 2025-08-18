@@ -26,7 +26,6 @@ const MainChart = ({ monthlyData = [] }) => {
 
     document.documentElement.addEventListener('ColorSchemeChange', handleColorSchemeChange);
     
-    // Cleanup event listener
     return () => {
       document.documentElement.removeEventListener('ColorSchemeChange', handleColorSchemeChange);
     };
@@ -35,18 +34,57 @@ const MainChart = ({ monthlyData = [] }) => {
   // Calculate max value for Y-axis
   const getMaxValue = () => {
     if (monthlyData.length > 0) {
-      const maxDataValue = Math.max(...monthlyData.map(amount => amount / 29.5735));
-      return Math.max(150, Math.ceil(maxDataValue * 1.2)); // Add 20% buffer
+      try {
+        // Extract amounts from monthlyData whether it's an array of numbers or objects
+        const amounts = monthlyData.map(item => {
+          if (typeof item === 'number') return item;
+          return item?.amount || item?.total || 0;
+        });
+        const maxDataValue = Math.max(...amounts.map(amount => amount / 29.5735));
+        return Math.max(150, Math.ceil(maxDataValue * 1.2));
+      } catch (error) {
+        console.error('Error calculating max value:', error);
+      }
     }
     return 150;
   };
 
-  // Prepare chart data
-  const chartData = monthlyData.length > 0 
-    ? monthlyData.map(amount => amount / 29.5735) // Convert to ounces
-    : Array(12).fill(0).map(() => Math.floor(Math.random() * 100) + 40);
+  // Prepare chart data - create array of 12 months with actual data or 0
+  const prepareMonthlyChartData = () => {
+    if (!Array.isArray(monthlyData) || monthlyData.length === 0) {
+      return Array(12).fill(0);
+    }
 
-  // Get current month index for highlighting
+    const chartData = Array(12).fill(0);
+
+    try {
+      // Handle array of numbers
+      if (typeof monthlyData[0] === 'number') {
+        monthlyData.slice(0, 12).forEach((amount, index) => {
+          chartData[index] = amount / 29.5735;
+        });
+      } 
+      // Handle array of objects
+      else if (typeof monthlyData[0] === 'object') {
+        monthlyData.forEach(item => {
+          const monthIndex = item.month !== undefined ? 
+                          (item.month > 11 ? item.month - 1 : item.month) : // Handle 1-12 vs 0-11
+                          monthlyData.indexOf(item);
+          
+          if (monthIndex >= 0 && monthIndex < 12) {
+            const amount = item.amount || item.total || 0;
+            chartData[monthIndex] = amount / 29.5735;
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error processing monthly data:', error);
+    }
+
+    return chartData;
+  };
+
+  const chartData = prepareMonthlyChartData();
   const currentMonth = new Date().getMonth();
 
   return (
@@ -61,14 +99,16 @@ const MainChart = ({ monthlyData = [] }) => {
             label: 'My Intake',
             backgroundColor: `rgba(${getStyle('--cui-info-rgb')}, .1)`,
             borderColor: getStyle('--cui-info'),
-            pointBackgroundColor: monthlyData.length > 0
-              ? (_, index) => index === currentMonth ? getStyle('--cui-danger') : getStyle('--cui-info')
-              : getStyle('--cui-info'),
+            pointBackgroundColor: (context) => {
+              const index = context.dataIndex;
+              return index === currentMonth ? getStyle('--cui-info') : getStyle('--cui-info');
+            },
             pointHoverBackgroundColor: getStyle('--cui-info'),
             borderWidth: 2,
-            pointRadius: monthlyData.length > 0
-              ? (_, index) => index === currentMonth ? 6 : 4
-              : 4,
+            pointRadius: (context) => {
+              const index = context.dataIndex;
+              return index === currentMonth ? 6 : 4;
+            },
             pointHoverRadius: 6,
             data: chartData,
             fill: true,
@@ -77,28 +117,64 @@ const MainChart = ({ monthlyData = [] }) => {
             label: 'Daily Goal',
             backgroundColor: 'transparent',
             borderColor: getStyle('--cui-success'),
+            pointBackgroundColor: (context) => {
+              const index = context.dataIndex;
+              return index === currentMonth ? getStyle('--cui-success') : getStyle('--cui-success');
+            },
             pointHoverBackgroundColor: getStyle('--cui-success'),
-            borderWidth: 1,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            borderWidth: 2,
             borderDash: [4, 4],
             data: Array(12).fill(85),
+            fill: false,
           },
           {
-            label: 'Male Average',
+            label: 'Men Recommended',
             backgroundColor: 'transparent',
-            borderColor: getStyle('--cui-danger'),
-            pointHoverBackgroundColor: getStyle('--cui-danger'),
-            borderWidth: 1,
+            borderColor: getStyle('--cui-primary'),
+            pointBackgroundColor: (context) => {
+              const index = context.dataIndex;
+              return index === currentMonth ? getStyle('--cui-primary') : getStyle('--cui-primary');
+            },
+            pointHoverBackgroundColor: getStyle('--cui-primary'),
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            borderWidth: 2,
             borderDash: [8, 5],
             data: Array(12).fill(124),
+            fill: false,
           },
           {
-            label: 'Female Average',
+            label: 'Women Recommended',
             backgroundColor: 'transparent',
             borderColor: getStyle('--cui-warning'),
+            pointBackgroundColor: (context) => {
+              const index = context.dataIndex;
+              return index === currentMonth ? getStyle('--cui-warning') : getStyle('--cui-warning');
+            },
             pointHoverBackgroundColor: getStyle('--cui-warning'),
-            borderWidth: 1,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            borderWidth: 2,
             borderDash: [8, 5],
             data: Array(12).fill(92),
+            fill: false,
+          },
+          {
+            label: 'Minimum Healthy',
+            backgroundColor: 'transparent',
+            borderColor: getStyle('--cui-secondary'),
+            pointBackgroundColor: (context) => {
+              const index = context.dataIndex;
+              return index === currentMonth ? getStyle('--cui-secondary') : getStyle('--cui-secondary');
+            },
+            pointHoverBackgroundColor: getStyle('--cui-secondary'),
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            borderWidth: 2,
+            data: Array(12).fill(64),
+            fill: false,
           },
         ],
       }}
@@ -125,7 +201,6 @@ const MainChart = ({ monthlyData = [] }) => {
             ticks: {
               color: getStyle('--cui-body-color'),
               callback: function(value, index) {
-                // Abbreviate month names
                 return this.getLabelForValue(value).substring(0, 3);
               }
             },
