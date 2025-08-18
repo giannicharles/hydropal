@@ -89,15 +89,76 @@ const Dashboard = () => {
     { title: 'Lowest Country Average', value: '65 oz', percent: 43, color: 'secondary' },
   ]
 
-  const progressGroupExample1 = [
-    { title: 'Monday', value1: 34, value2: 85 },
-    { title: 'Tuesday', value1: 56, value2: 85 },
-    { title: 'Wednesday', value1: 12, value2: 85 },
-    { title: 'Thursday', value1: 43, value2: 85 },
-    { title: 'Friday', value1: 22, value2: 85 },
-    { title: 'Saturday', value1: 53, value2: 85 },
-    { title: 'Sunday', value1: 9, value2: 85 },
-  ]
+/* 
+ * DAILY WATER INTAKE TRACKING COMPONENT
+ */
+
+// Get current day of week (0 = Sunday, 1 = Monday, etc.)
+const today = new Date().getDay();
+
+// Day of the week variables
+let sun, mon, tue, wed, thur, fri, sat;
+
+if (today === 0) { sun = todayWater; }
+if (today === 1) { mon = todayWater; }
+if (today === 2) { tue = todayWater; }
+if (today === 3) { wed = todayWater; }
+if (today === 4) { thur = todayWater; }
+if (today === 5) { fri = todayWater; }
+if (today === 6) { sat = todayWater; }
+
+// Update chart with current values
+const progressGroupExample1 = [
+  { 
+    title: 'Sunday', 
+    value1Text: sun ? `${(sun / 29.5735).toFixed(1)} oz` : '0.0 oz',
+    value1Percent: sun ? Math.min((sun / DAILY_GOAL_ML) * 100, 100) : 0,
+    value2Text: '85.0 oz',
+    value2Percent: 100
+  },
+  { 
+    title: 'Monday', 
+    value1Text: mon ? `${(mon / 29.5735).toFixed(1)} oz` : '0.0 oz',
+    value1Percent: mon ? Math.min((mon / DAILY_GOAL_ML) * 100, 100) : 0,
+    value2Text: '85.0 oz',
+    value2Percent: 100
+  },
+  { 
+    title: 'Tuesday', 
+    value1Text: tue ? `${(tue / 29.5735).toFixed(1)} oz` : '0.0 oz',
+    value1Percent: tue ? Math.min((tue / DAILY_GOAL_ML) * 100, 100) : 0,
+    value2Text: '85.0 oz',
+    value2Percent: 100
+  },
+  { 
+    title: 'Wednesday', 
+    value1Text: wed ? `${(wed / 29.5735).toFixed(1)} oz` : '0.0 oz',
+    value1Percent: wed ? Math.min((wed / DAILY_GOAL_ML) * 100, 100) : 0,
+    value2Text: '85.0 oz',
+    value2Percent: 100
+  },
+  { 
+    title: 'Thursday', 
+    value1Text: thur ? `${(thur / 29.5735).toFixed(1)} oz` : '0.0 oz',
+    value1Percent: thur ? Math.min((thur / DAILY_GOAL_ML) * 100, 100) : 0,
+    value2Text: '85.0 oz',
+    value2Percent: 100
+  },
+  { 
+    title: 'Friday', 
+    value1Text: fri ? `${(fri / 29.5735).toFixed(1)} oz` : '0.0 oz',
+    value1Percent: fri ? Math.min((fri / DAILY_GOAL_ML) * 100, 100) : 0,
+    value2Text: '85.0 oz',
+    value2Percent: 100
+  },
+  { 
+    title: 'Saturday', 
+    value1Text: sat ? `${(sat / 29.5735).toFixed(1)} oz` : '0.0 oz',
+    value1Percent: sat ? Math.min((sat / DAILY_GOAL_ML) * 100, 100) : 0,
+    value2Text: '85.0 oz',
+    value2Percent: 100
+  },
+];
 
   // Avatar selection based on ranking position
   const getAvatarForRank = (index) => {
@@ -184,7 +245,7 @@ const Dashboard = () => {
       <CRow>
         <CCol xs>
           <CCard className="mb-4">
-            <CCardHeader>Weekly Hydration Progress</CCardHeader>
+            <CCardHeader>Daily Hydration Progress</CCardHeader>
             <CCardBody>
               <CRow>
                 <CCol xs>
@@ -211,8 +272,8 @@ const Dashboard = () => {
                         <span className="text-body-secondary small">{item.title}</span>
                       </div>
                       <div className="progress-group-bars">
-                        <CProgress thin color="info" value={item.value1} />
-                        <CProgress thin color="success" value={item.value2} />
+                        <CProgress thin color="info" value={item.value1Percent} />
+                        <CProgress thin color="success" value={item.value2Percent} />
                       </div>
                     </div>
                   ))}
